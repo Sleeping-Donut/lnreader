@@ -146,13 +146,13 @@ const FilterItem: React.FC<FilterItemProps> = ({
               ? { value, onFocus: field.onFocus, onBlur: field.onBlur }
               : { defaultValue: value })}
           />
-          {field.isVisible ? (
+          {field.isVisible && (
             <FilterSuggestionList
               theme={theme}
               suggestions={field.suggestions}
               onSelect={field.select}
             />
-          ) : null}
+          )}
         </View>
       </View>
     );
