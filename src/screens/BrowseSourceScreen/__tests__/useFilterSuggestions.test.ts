@@ -274,19 +274,53 @@ describe('useFilterSuggestions', () => {
     expect(result.current.isVisible).toBe(false);
   });
 
-  it('reports the selection and hides the list', async () => {
+  it('reports the selection and keeps the list hidden until the field is edited', async () => {
     const onSelect = jest.fn();
-    mockGetFilterSuggestions.mockResolvedValue([{ label: 'A', value: 'A' }]);
+    mockGetFilterSuggestions.mockResolvedValue([
+      { label: 'Abc', value: 'Abc' },
+    ]);
 
-    const { result } = renderSuggestions('ab', onSelect);
+    const { result, rerender } = renderSuggestions('ab', onSelect);
     await act(async () => {
       jest.advanceTimersByTime(250);
     });
     act(() => result.current.onFocus());
 
-    act(() => result.current.select({ label: 'A', value: 'A' }));
+    act(() => result.current.select({ label: 'Abc', value: 'Abc' }));
 
-    expect(onSelect).toHaveBeenCalledWith({ label: 'A', value: 'A' });
+    expect(onSelect).toHaveBeenCalledWith({ label: 'Abc', value: 'Abc' });
     expect(result.current.isVisible).toBe(false);
+
+    // The picked value becomes the new query, which must not reopen the list.
+    rerender({ query: 'Abc' });
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(result.current.suggestions).toEqual([
+      { label: 'Abc', value: 'Abc' },
+    ]);
+    expect(result.current.isVisible).toBe(false);
+
+    act(() => result.current.onEdit());
+    expect(result.current.isVisible).toBe(true);
+  });
+
+  it('reopens the list when the field is focused again', async () => {
+    mockGetFilterSuggestions.mockResolvedValue([
+      { label: 'Abc', value: 'Abc' },
+    ]);
+
+    const { result } = renderSuggestions('ab');
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
+    act(() => result.current.onFocus());
+    act(() => result.current.select({ label: 'Abc', value: 'Abc' }));
+    expect(result.current.isVisible).toBe(false);
+
+    act(() => result.current.onBlur());
+    act(() => result.current.onFocus());
+    expect(result.current.isVisible).toBe(true);
   });
 });

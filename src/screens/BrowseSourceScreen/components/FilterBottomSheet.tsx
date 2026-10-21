@@ -57,8 +57,7 @@ const FilterSuggestionList: React.FC<FilterSuggestionListProps> = ({
     {suggestions.map(option => (
       <Pressable
         key={option.value}
-        // onPressIn runs before the input blurs and hides the list.
-        onPressIn={() => onSelect(option)}
+        onPress={() => onSelect(option)}
         android_ripple={{ color: theme.rippleColor }}
         style={styles.suggestionItem}
       >
@@ -136,12 +135,15 @@ const FilterItem: React.FC<FilterItemProps> = ({
             theme={{ colors: { background: 'transparent' } }}
             outlineColor={theme.onSurface}
             textColor={theme.onSurface}
-            onChangeText={text =>
+            onChangeText={text => {
+              if (isAutocomplete) {
+                field.onEdit();
+              }
               setSelectedFilters(prevState => ({
                 ...prevState,
                 [filterKey]: { value: text, type: FilterTypes.TextInput },
-              }))
-            }
+              }));
+            }}
             {...(isAutocomplete
               ? { value, onFocus: field.onFocus, onBlur: field.onBlur }
               : { defaultValue: value })}

@@ -50,6 +50,7 @@ export interface FilterSuggestionsResult {
   isLoading: boolean;
   onFocus: () => void;
   onBlur: () => void;
+  onEdit: () => void;
   select: (option: FilterOption) => void;
 }
 
@@ -71,6 +72,8 @@ export const useFilterSuggestions = (
     suggestions: [],
   });
   const [isFocused, setIsFocused] = useState(false);
+  // A pick closes the list without blurring the input, so only an edit reopens it.
+  const [isSuppressed, setIsSuppressed] = useState(false);
 
   // Guards against stale responses touching state.
   const requestIdRef = useRef(0);
@@ -141,13 +144,17 @@ export const useFilterSuggestions = (
 
   return {
     suggestions,
-    isVisible: isFocused && suggestions.length > 0,
+    isVisible: isFocused && !isSuppressed && suggestions.length > 0,
     isLoading: isActive && !isCurrent && !cached,
-    onFocus: () => setIsFocused(true),
+    onFocus: () => {
+      setIsFocused(true);
+      setIsSuppressed(false);
+    },
     onBlur: () => setIsFocused(false),
+    onEdit: () => setIsSuppressed(false),
     select: option => {
       onSelect(option);
-      setIsFocused(false);
+      setIsSuppressed(true);
     },
   };
 };
